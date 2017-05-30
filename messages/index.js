@@ -53,7 +53,7 @@ const convertTag = function(tag){
 bot.dialog('/', function (session) {
     var address = session.message.address;
     userStore.push(address);
-    session.send('こんにちわ！');
+    session.send('こんにちは！');
     session.beginDialog('/qa')
     }
 )
