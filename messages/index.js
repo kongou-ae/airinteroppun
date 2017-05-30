@@ -13,7 +13,9 @@ var connector = useEmulator ? new builder.ChatConnector() : new botbuilder_azure
     openIdMetadata: process.env['BotOpenIdMetadata']
 });
 
+var userStore = [];
 var bot = new builder.UniversalBot(connector);
+
 bot.localePath(path.join(__dirname, './locale'));
 
 function createThumbnailCard(session) {
@@ -48,12 +50,13 @@ const convertTag = function(tag){
     return tagToMessage[tag]
 }
 
-bot.dialog('/', [
-    function (session) {
-        session.send("こんにちは！");
-        session.beginDialog('/qa');
+bot.dialog('/', function (session) {
+    var address = session.message.address;
+    userStore.push(address);
+    session.send('こんにちわ！');
+    session.beginDialog('/qa')
     }
-])
+)
 
 bot.dialog('/qa', [
     function (session,args,next) {
@@ -61,7 +64,7 @@ bot.dialog('/qa', [
         if (session.message.text.match(/^(http|https):\/\//)){
             next()
         } else{
-            builder.Prompts.text(session, 'ネットワーク機器の画像のURLを入力してください。どのメーカの機器かあてますよ！');
+            builder.Prompts.text(session, 'ネットワーク機器の画像のURLを入力してください。どのメーカの製品なのかをあてますよ！');
         }
     },
     function (session,url,next) {
@@ -81,7 +84,9 @@ bot.dialog('/qa', [
             request(options, function (error, response, body) {
                 // APIコールした結果画像じゃなければ、入力を初期化して/qaに戻る
                 if (response.statusCode === 400){
-                    session.send('画像じゃないかも？');                     
+                    session.send('画像のURLじゃないかも？');                  
+                    session.message.text=''
+                    session.replaceDialog("/qa");
                 } else {
                     var card = createThumbnailCard(session);
 
@@ -90,21 +95,39 @@ bot.dialog('/qa', [
                     session.send(msg);
 
                     if(body.Predictions[0] && body.Predictions[0].Probability > 0.9){
-                        session.endConversation('この画像は ' + convertTag(body.Predictions[0].Tag) + 'ですね！!');
+                        session.endConversation('このネットワーク機器は ' + convertTag(body.Predictions[0].Tag) + 'ですね！!');
+                        session.beginDialog('/check')
                     } else {
-                        session.endConversation('ごめんなさい。わかりません・・・');
+                        session.endConversation('ごめんなさい。わかりません...');
+                        session.send('また教えてくださいね！(｡･ω･)ﾉﾞ');
+                        session.endDialog();
                     }
                 }
-                session.message.text = ""
-                session.replaceDialog("/qa");   
             })
         } else {
             session.send('URLじゃないかも？');
-            session.message.text = ""
+            // URLを入力してもらうために/qaに戻る
+            session.message.text=''
             session.replaceDialog("/qa");
         }
     }
 ]);
+
+bot.dialog('/check', [
+    function (session,args,next) {
+        builder.Prompts.choice(session,"当たりましたか？","正解|はずれ");
+    },
+    function(session, results) {
+        if(results.response.entity==="正解"){
+            session.send(results.response.entity + 'ですね！うれしいです！');
+        }
+        if(results.response.entity==="はずれ"){
+            session.send(results.response.entity + 'ですか...残念です...今回教えてもらったURLを使ってもっと勉強します！');
+        }
+        session.send('また教えてくださいね！(｡･ω･)ﾉﾞ');
+        session.endDialog();
+    }
+])
 
 if (useEmulator) {
     var restify = require('restify');
