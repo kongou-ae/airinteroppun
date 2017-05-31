@@ -74,7 +74,7 @@ bot.dialog('/qa', [
                 'Prediction-Key':'c77f087215014b7fb3ff718a26089cfe'
             }
             var options = {
-                url: 'https://southcentralus.api.cognitive.microsoft.com/customvision/v1.0/Prediction/a2e5a117-d22e-42e8-ac3f-f7fd9fc6b63a/url?iterationId=46a48147-7fc8-4706-b0d9-9aefede16a3b',
+                url: 'https://southcentralus.api.cognitive.microsoft.com/customvision/v1.0/Prediction/a2e5a117-d22e-42e8-ac3f-f7fd9fc6b63a/url?iterationId=d2bdc205-84ba-49ac-9894-c477326fde92',
                 method: 'POST',
                 headers: headers,
                 json: true,
