@@ -32,20 +32,23 @@ const convertTag = function(tag){
         'alliedtelesis':'アライドテレシス',
         'arista':'アリスタ',
         'checkpoint':'チェックポイント',
-        'cisco-rt':'シスコのルータ',
-        'cisco-sw':'シスコのスイッチ',
+        'cisco-rt':'シスコ',
+        'cisco-rt-asr':'シスコ',
+        'cisco-sw':'シスコ',
         'dell':'デル',
         'dlink':'D-Link',
+        'extream':'エクストリーム',
         'f5':'F5ネットワークス',
         'fortigate-black':'フォーティゲート',
         'fortigate-white':'フォーティゲート',
-        'juniper-fw':'ジュニパーのファイアウォール',
-        'juniper-sw':'ジュニパーのスイッチ',
+        'juniper-fw':'ジュニパー',
+        'juniper-fw-new':'ジュニパー',
+        'juniper-sw':'ジュニパー',
         'nec':'NEC',
         'palo':'パロアルト',
-        'yamaha-fw':'ヤマハのファイアウォール',
-        'yamaha-router':'ヤマハのルータ',
-        'yamaha-sw':'ヤマハのスイッチ'
+        'yamaha-fw':'ヤマハ',
+        'yamaha-router':'ヤマハ',
+        'yamaha-sw':'ヤマハ'
     }
     return tagToMessage[tag]
 }
@@ -74,7 +77,7 @@ bot.dialog('/qa', [
                 'Prediction-Key':'c77f087215014b7fb3ff718a26089cfe'
             }
             var options = {
-                url: 'https://southcentralus.api.cognitive.microsoft.com/customvision/v1.0/Prediction/a2e5a117-d22e-42e8-ac3f-f7fd9fc6b63a/url?iterationId=d2bdc205-84ba-49ac-9894-c477326fde92',
+                url: 'https://southcentralus.api.cognitive.microsoft.com/customvision/v1.0/Prediction/a2e5a117-d22e-42e8-ac3f-f7fd9fc6b63a/url',
                 method: 'POST',
                 headers: headers,
                 json: true,
@@ -94,8 +97,11 @@ bot.dialog('/qa', [
                     var msg = new builder.Message(session).addAttachment(card);
                     session.send(msg);
 
-                    if(body.Predictions[0] && body.Predictions[0].Probability > 0.9){
+                    if(body.Predictions[0] && body.Predictions[0].Probability > 0.85){
                         session.endConversation('このネットワーク機器は ' + convertTag(body.Predictions[0].Tag) + 'ですね！!');
+                        session.beginDialog('/check')
+                    } else if(body.Predictions[0] && body.Predictions[0].Probability > 0.70){
+                        session.endConversation('このネットワーク機器は ' + convertTag(body.Predictions[0].Tag) + 'でしょうか...ちょっと自信ないです...');
                         session.beginDialog('/check')
                     } else {
                         session.endConversation('ごめんなさい。わかりません...');
